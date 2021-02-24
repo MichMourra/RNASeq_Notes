@@ -1,0 +1,150 @@
+---
+title: "BioConductor Packages"
+author: "Carlos Michel Mourra Díaz"
+date: "23/02/21"
+output: output_format
+---
+
+
+# Equipo
+
+**Michel Mourra**
+**Dante Torres**
+**Daniel Olmos**
+**Eduardo Arrieta**
+
+# Paquetes de BioConductor
+
+## Hummingbird
+
+### Función
+
+Es un paquete capaz de detectar metilación diferencial a partir de modelos Bayesianos asumiendo que existe dependencia entre las observaciones.
+
+### Características
+
+ - No hay preguntas.
+ - Pasa las pruebas para todos los sistemas operativos.
+ - Tiene pocas descargas pero puede ser porque es demasiado específico.
+ - buena documentacion.
+ - No cuneta con URL a repositorio en Github
+ 
+  **Calificacion final 7.5**
+ 
+## ncRNAtools
+
+### Función
+
+Es un set de herramientas básicas para el análisis de RNAs no codificantes.
+
+### Características
+
+- Fallo pruebas en linux
+- No hizo una de las pruebas en linux. 
+- No hay preguntas ni respuestas.
+- Buena documentacion. 
+- Pocas descargas aun que sea mas general que el anterior.
+- No tiene URL del paquete al repositorio en Github
+
+  **Calificacion final 6**
+
+## ToxicoGx
+
+### Función
+
+Contiene un set de funciones para el análisis de datos toxico genómicos.
+
+### Características
+
+- No hay preguntas
+- Pasa pruebas para todos los sistemas operativos.
+- Demasiadas dependencias, más descargas que los dos anteriores.
+- Documentación MUY corta pero MUY bonita. 
+- No tiene URL a repositorio en Github
+
+  **Calificación final 8.0**
+
+## ChromeSScape
+
+### Función
+
+Es una aplicación para el análisis epigenomico de celula unica.
+
+### Características
+
+- No tiene preguntas
+- Muchísimas dependencias. 
+- Pasó las pruebas en todos los sístemas operativos.
+- Muy buena y bonita documentación.
+- Si tiene URL a repositorio en Github 	https://github.com/vallotlab/ChromSCape
+
+  **Calificación final 9.5**
+
+## Musicatk
+
+### Funciones
+
+Identificar firmas mutacionales de celulas carcinogenicas.
+
+### Características
+
+- Muchas dependencias
+- Se ve que no ha habido muchos cambios y la página puede estar un poco obsoleta.
+- La documentacion está bonita y bien explicada.
+- No tiene URL de repositorio en Github
+
+  **Calificacion Final 8.5**
+
+
+## VERSO
+
+### Función
+
+Detectar la historia evolutiva de un virus a traves de sus mutaciones.
+
+### Características
+
+- Pocas dependencias
+- Pasa todo los sistemas operativos
+- Es un paquete muy útil para la situación de ahorita pero es extrañamente poco descargado. 
+- No tiene documentación en HTML pero la tiene en PDF.
+- Si tiene URL a repositorio en Github. https://github.com/BIMIB-DISCo/VERSO
+
+  **Calificación Final 9.0**
+  
+## RIPAT
+
+### Función
+
+Se utiliza para localizar sitios de integrasión retroviral.
+
+### Características
+
+- Un número normal de dependencias.
+- No hay preguntas.
+- Paso todas las pruebas de todos los sistemas operativos.
+- La documentación está MUY completa y bien explicada.
+- Si tiene URL a repositorio en github. https://github.com/bioinfo16/RIPAT/
+
+  **Calificacion final 9.5**
+
+## Velociraptor
+
+### Funciones
+
+Cuantificación de RNA a alta velocidad en analisis de celula única.
+
+### Características
+
+- Buen número de descargas y de dependencias
+- pasó todas las pruebas en todos los sistemas operativos
+- la documentación es bonita y completa. 
+- Además tiene un buen nombre que apela al sentido del humor del usuario. 
+- Si tiene URL al repositorio de Github. https://github.com/kevinrue/velociraptor
+
+  **Calificacion Final 9**
+
+# Conclusión
+
+Tras las caracteristicas observadas yo confiaria mas en las descarga del programa RIPAT ya que tiene toda la información disponible para el trabajo.
+
