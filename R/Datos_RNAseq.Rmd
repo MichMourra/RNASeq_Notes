@@ -112,7 +112,12 @@ iSEE::iSEE(rse_gene_SRP009615)
 ```
 
 
+Mi cuenta de shiny
+
+![Shiny](Shiny.png)
+
 Equipo con Axel en el ejercicio
+
 
 https://github.com/AxelZagal/rnaseq_2021_notas
 
