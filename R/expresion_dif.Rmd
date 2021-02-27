@@ -3,6 +3,27 @@ title: "Estadistica"
 output: html_document
 ---
 
+Para explicar la relacion de variables con un resultado es necesario hacer una regresion lineal
+
+```{r}
+## ?model.matrix
+mat <- with(trees, model.matrix(log(Volume) ~ log(Height) + log(Girth)))
+mat
+```
+
+
+
+```{r}
+colnames(mat)
+```
+
+
+
+```{r}
+summary(lm(log(Volume) ~ log(Height) + log(Girth), data = trees))
+```
+
+
 
 # Ejemplo 1
 
@@ -18,7 +39,6 @@ output: html_document
 mod <- model.matrix(~genotype + treatment, data = sampleData)
 mod
 ```
-
 
 
 
@@ -83,6 +103,9 @@ vd <- VisualizeDesign(
 cowplot::plot_grid(plotlist = vd$plotlist, ncol = 1)
 ```
 
+
+Veremos un caso de una matriz que no es full rank quiere decir que las variables no explican los resultados
+
 ```{r}
 (sampleData = data.frame(
   condition = factor(rep(c("ctrl_minus", "ctrl_plus", 
@@ -107,10 +130,15 @@ vd <- VisualizeDesign(sampleData = sampleData,
                       dropCols = "conditionko_minus")
 cowplot::plot_grid(plotlist = vd$plotlist, ncol = 1)
 
+```
+
+
+```{r, eval=FALSE}
 app <- ExploreModelMatrix(sampleData = sampleData,
                           designFormula = ~ batch + condition)
 if (interactive()) shiny::runApp(app)
 ```
+
 
 ```{r}
 library("recount3")
@@ -127,15 +155,19 @@ rse_gene_SRP045638 <- create_rse(
 )
 ```
 
+```{r}
+assay(rse_gene_SRP045638, "counts") <- compute_read_counts(rse_gene_SRP045638)
+```
+
 
 ```{r}
-BiocManager::install("edgeR", update = FALSE)
+rse_gene_SRP045638$sra.sample_attributes[1:3]
 ```
+
 
 ```{r}
 library("edgeR")
 ```
-
 
 
 ```{r}
@@ -245,112 +277,178 @@ ggplot(as.data.frame(colData(rse_gene_SRP045638)), aes(y = assigned_gene_prop, x
     ylab("Assigned Gene Prop") +
     xlab("Age Group")
 ```
-
 ```{r}
-speaqeasy_data <- file.path(tempdir(), "rse_speaqeasy.RData")
-download.file("https://github.com/LieberInstitute/SPEAQeasy-example/blob/master/rse_speaqeasy.RData?raw=true", speaqeasy_data, mode = "wb")
-library("SummarizedExperiment")
-load(speaqeasy_data, verbose = TRUE)
-```
-
-```{r}
-rse_gene
-```
-
-
-```{r}
-#
-rse_gene$totalAssignedGene
-```
-
-```{r}
-# 
-rse_gene$mitoRate
-```
-
-```{r}
-rse_gene$PrimaryDx
-```
-
-```{r}
-library("ggplot2")
-ggplot(as.data.frame(colData(rse_gene)), aes(y = mitoRate, x = PrimaryDx)) +
-    geom_boxplot() +
-    theme_bw(base_size = 20) +
-    ylab("mitoRate") +
-    xlab("PrimaryDx")
-```
-
-```{r}
-library("ggplot2")
-ggplot(as.data.frame(colData(rse_gene)), aes(y = totalAssignedGene, x = PrimaryDx)) +
-    geom_boxplot() +
-    theme_bw(base_size = 20) +
-    ylab("totalAssignedGene") +
-    xlab("PrimaryDx")
-```
-
-```{r}
-assay(rse_gene)
-```
-
-```{r}
-gene <- "SNAP25"
-list <- rowData(rse_gene)$Symbol
-
-index <- match(gene, list)
-index
-```
-
-```{r}
-rse_gene[index]
-```
-
-```{r}
-iSEE::iSEE(rse_gene[index])
-```
-
-```{r}
-colnames(colData(rse_gene))
-```
-
-
-
-
-
-
-```{r}
-library("edgeR") # BiocManager::install("edgeR", update = FALSE)
-```
-
-
-```{r}
-dge <- DGEList(
-    counts = assay(rse_gene, "counts"),
-    genes = rowData(rse_gene)
-)
-
-dge <- calcNormFactors(dge)
-```
-
-
-
-
-```{r}
-mod <- model.matrix(~ PrimaryDx + totalAssignedGene + mitoRate + numReads,
-    data = colData(rse_gene)
+mod <- model.matrix(~ prenatal + sra_attribute.RIN + sra_attribute.sex + assigned_gene_prop,
+    data = colData(rse_gene_SRP045638)
 )
 colnames(mod)
 ```
 
-
 ```{r}
 library("limma")
+vGene <- voom(dge, mod, plot = TRUE)
 ```
 
 ```{r}
-vGene <- voom(dge, mod, plot = TRUE)
+eb_results <- eBayes(lmFit(vGene))
+
+de_results <- topTable(
+    eb_results,
+    coef = 2,
+    number = nrow(rse_gene_SRP045638),
+    sort.by = "none"
+)
+dim(de_results)
 ```
+
+```{r}
+head(de_results)
+```
+
+```{r}
+## Genes diferencialmente expresados entre pre y post natal con FDR < 5%
+table(de_results$adj.P.Val < 0.05)
+```
+
+
+```{r}
+## Visualicemos los resultados estadísticos
+plotMA(eb_results, coef = 2)
+```
+
+```{r}
+volcanoplot(eb_results, coef = 2, highlight = 3, names = de_results$gene_name)
+```
+
+```{r}
+de_results[de_results$gene_name %in% c("ZSCAN2", "VASH2", "KIAA0922"), ]
+```
+
+```{r}
+## Extraer valores de los genes de interés
+exprs_heatmap <- vGene$E[rank(de_results$adj.P.Val) <= 50, ]
+
+## Creemos una tabla con información de las muestras
+## y con nombres de columnas más amigables
+df <- as.data.frame(colData(rse_gene_SRP045638)[, c("prenatal", "sra_attribute.RIN", "sra_attribute.sex")])
+colnames(df) <- c("AgeGroup", "RIN", "Sex")
+
+## Hagamos un heatmap
+library("pheatmap")
+pheatmap(
+    exprs_heatmap,
+    cluster_rows = TRUE,
+    cluster_cols = TRUE,
+    show_rownames = FALSE,
+    show_colnames = FALSE,
+    annotation_col = df
+)
+```
+
+```{r}
+## Para colores
+library("RColorBrewer")
+
+## Conviertiendo los grupos de edad a colores
+col.group <- df$AgeGroup
+levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
+```
+
+
+```{r}
+col.group <- as.character(col.group)
+
+## MDS por grupos de edad
+plotMDS(vGene$E, labels = df$AgeGroup, col = col.group)
+```
+
+```{r}
+## Conviertiendo los valores de Sex a colores
+col.sex <- df$Sex
+levels(col.sex) <- brewer.pal(nlevels(col.sex), "Dark2")
+```
+
+```{r}
+col.sex <- as.character(col.sex)
+
+## MDS por sexo
+plotMDS(vGene$E, labels = df$Sex, col = col.sex)
+```
+
+# Respuesta ejercicio en equipo con pau
+
+Resolvemos el heatmap
+
+```{r "Ejercicio pheatmap"}
+# Obtener los nombres a partir de los IDs en el arreglo general
+namesIndex <- match(rownames(exprs_heatmap), de_results$gene_id)
+geneNames <- de_results$gene_name[namesIndex]
+# Modificar los nombres del heatmap
+row.names(exprs_heatmap) <- geneNames
+
+pheatmap(
+    exprs_heatmap,
+    cluster_rows = TRUE,
+    cluster_cols = TRUE,
+    show_rownames = TRUE,
+    show_colnames = FALSE,
+    annotation_col = df
+)
+```
+
+Guardamos en PDF
+
+```{r,eval=FALSE}
+# Obtener los nombres a partir de los IDs en el arreglo general
+namesIndex <- match(rownames(exprs_heatmap), de_results$gene_id)
+geneNames <- de_results$gene_name[namesIndex]
+# Modificar los nombres del heatmap
+row.names(exprs_heatmap) <- geneNames
+pdf("pheatmap_DE_con_nombres.pdf", height = 14, useDingbats = FALSE)
+pheatmap(
+    exprs_heatmap,
+    cluster_rows = TRUE,
+    cluster_cols = TRUE,
+    show_rownames = TRUE,
+    show_colnames = FALSE,
+    annotation_col = df
+)
+```
+
+# Resolución clase
+
+```{r}
+## Tenemos que usar gene_id y gene_name
+rowRanges(rse_gene_SRP045638)
+```
+
+```{r}
+## Con match() podemos encontrar cual es cual
+rownames(exprs_heatmap) <- rowRanges(rse_gene_SRP045638)$gene_name[
+    match(rownames(exprs_heatmap), rowRanges(rse_gene_SRP045638)$gene_id)
+]
+
+## Y luego podemos cambiar el valor de show_rownames de FALSE a TRUE
+pheatmap(
+    exprs_heatmap,
+    cluster_rows = TRUE,
+    cluster_cols = TRUE,
+    show_rownames = TRUE,
+    show_colnames = FALSE,
+    annotation_col = df
+)
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
