@@ -56,7 +56,7 @@ rse_gene_SRP009615
 
 Podemos ver los proyectos de una manera mas dinámica
 
-```{r}
+```{r,eval=FALSE}
 ## Explora los proyectos disponibles de forma interactiva
 proj_info_interactive <- interactiveDisplayBase::display(human_projects)
 ## Selecciona un solo renglón en la tabla y da click en "send".
@@ -64,7 +64,7 @@ proj_info_interactive <- interactiveDisplayBase::display(human_projects)
 
 Nos aseguramos de que solo hayamos seleccionado un renglon
 
-```{r}
+```{r,eval=FALSE}
 ## Aquí verificamos que solo seleccionaste un solo renglón.
 stopifnot(nrow(proj_info_interactive) == 1)
 ## Crea el objeto RSE
@@ -112,12 +112,7 @@ iSEE::iSEE(rse_gene_SRP009615)
 ```
 
 
-
-```{r}
-
-```
-
-
+Equipo con Axel en el ejercicio
 
 https://github.com/AxelZagal/rnaseq_2021_notas
 
