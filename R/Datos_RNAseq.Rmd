@@ -3,15 +3,26 @@ title: "Datos_RNAseq"
 output: html_document
 ---
 
+# Datos de RNA seq
 
 ```{r}
 library("recount3")
 ```
 
+Vamos a checar cuales son los proyectos disponibles para humano con recount3
+
 ```{r}
 ## Revisemos todos los proyectos con datos de humano en recount3
 human_projects <- available_projects()
 ```
+
+Exploramos los proyectos
+
+```{r}
+human_projects
+```
+
+Ahora debemos escoger el proyecto que nos interesa, en este caso sera SRP009615
 
 ```{r}
 ## Encuentra tu proyecto de interés. Aquí usaremos
@@ -24,21 +35,34 @@ proj_info <- subset(
 
 
 ```{r}
+proj_info
+```
+
+
+creamos el objeto de summarized experiment que contenga toda la información que sacamos.
+
+```{r}
 ## Crea un objetio de tipo RangedSummarizedExperiment (RSE)
 ## con la información a nivel de genes
 rse_gene_SRP009615 <- create_rse(proj_info)
 ```
+
+Observamos que contiene el objeto summarized experiment
 
 ```{r}
 ## Explora el objeto RSE
 rse_gene_SRP009615
 ```
 
+Podemos ver los proyectos de una manera mas dinámica
+
 ```{r}
 ## Explora los proyectos disponibles de forma interactiva
 proj_info_interactive <- interactiveDisplayBase::display(human_projects)
 ## Selecciona un solo renglón en la tabla y da click en "send".
 ```
+
+Nos aseguramos de que solo hayamos seleccionado un renglon
 
 ```{r}
 ## Aquí verificamos que solo seleccionaste un solo renglón.
@@ -47,12 +71,18 @@ stopifnot(nrow(proj_info_interactive) == 1)
 rse_gene_interactive <- create_rse(proj_info_interactive)
 ```
 
+Con read counts queremos cambiar las cuentas de de nucleotido a cuentas por lecturas
+
 ```{r}
 ## Convirtamos las cuentas por nucleotido a cuentas por lectura
 ## usando compute_read_counts().
 ## Para otras transformaciones como RPKM y TPM, revisa transform_counts().
 assay(rse_gene_SRP009615, "counts") <- compute_read_counts(rse_gene_SRP009615)
+
+head(assay(rse_gene_SRP009615, "counts"))
 ```
+
+
 
 ```{r}
 ## Para este estudio en específico, hagamos más fácil de usar la
@@ -66,8 +96,27 @@ colData(rse_gene_SRP009615)[
 
 
 ```{r}
+## Para este estudio en específico, hagamos más fácil de usar la
+## información del experimento
+rse_gene_SRP009615 <- expand_sra_attributes(rse_gene_SRP009615)
+colData(rse_gene_SRP009615)[
+    ,
+    grepl("^sra_attribute", colnames(colData(rse_gene_SRP009615)))
+]
+```
+
+Observamos toda la información de manera interactiva por medio de iSEE
+
+```{r,eval=FALSE}
 iSEE::iSEE(rse_gene_SRP009615)
 ```
+
+
+
+```{r}
+
+```
+
 
 
 https://github.com/AxelZagal/rnaseq_2021_notas
