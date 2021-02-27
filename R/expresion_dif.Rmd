@@ -17,7 +17,7 @@ mat
 colnames(mat)
 ```
 
-
+Obtener los coeficientes de las regresiones lineales y los valores p
 
 ```{r}
 summary(lm(log(Volume) ~ log(Height) + log(Girth), data = trees))
@@ -25,7 +25,11 @@ summary(lm(log(Volume) ~ log(Height) + log(Girth), data = trees))
 
 
 
-# Ejemplo 1
+# Ejemplo 1 Explore Model Matrix
+
+Este paquete tiene funciones para hacer imagenes a partir de las matrices de datos que se tienen.
+
+En este caso se plantea un experimento de 2 replicas para cada condición
 
 ```{r}
 ## Datos de ejemplo
@@ -35,12 +39,14 @@ summary(lm(log(Volume) ~ log(Height) + log(Girth), data = trees))
 ))
 ```
 
+De esta manera podemos encontrar el modelo de acuerdo a una formula
+
 ```{r}
 mod <- model.matrix(~genotype + treatment, data = sampleData)
 mod
 ```
 
-
+Un ejemplo que nos ayudara a interpretar los coeficientes por medio de visualización
 
 ```{r}
 vd <- ExploreModelMatrix::VisualizeDesign(
@@ -57,6 +63,9 @@ cowplot::plot_grid(plotlist = vd$plotlist)
 library(ExploreModelMatrix)
 ```
 
+## EJEMPLO 2
+
+En este caso generaremos una tabla de muestras de de pacientes sometidos a cierto tratamiento y las caracteristicas presentadas
 
 ```{r}
 (sampleData <- data.frame(
@@ -132,6 +141,7 @@ cowplot::plot_grid(plotlist = vd$plotlist, ncol = 1)
 
 ```
 
+Para ver la matriz de manera interactiva con shiny
 
 ```{r, eval=FALSE}
 app <- ExploreModelMatrix(sampleData = sampleData,
@@ -139,12 +149,15 @@ app <- ExploreModelMatrix(sampleData = sampleData,
 if (interactive()) shiny::runApp(app)
 ```
 
+Ahora trabajaremos con los proyectos de recount3, seleccionando 1
 
 ```{r}
 library("recount3")
 
 human_projects <- available_projects()
 ```
+
+Escogemos un proyecto en específico
 
 ```{r}
 rse_gene_SRP045638 <- create_rse(
@@ -158,6 +171,7 @@ rse_gene_SRP045638 <- create_rse(
 ```{r}
 assay(rse_gene_SRP045638, "counts") <- compute_read_counts(rse_gene_SRP045638)
 ```
+
 
 
 ```{r}
@@ -200,27 +214,33 @@ summary(as.data.frame(colData(rse_gene_SRP045638)[
 ]))
 ```
 
+Identificamos cuantos post natales y prenatales hay
 
 ```{r}
 rse_gene_SRP045638$prenatal <- factor(ifelse(rse_gene_SRP045638$sra_attribute.age < 0, "prenatal", "postnatal"))
 table(rse_gene_SRP045638$prenatal)
 ```
 
+Ahora tenemos que evaluar la calidad de los genes que tenemos, por lo que observamos la medida del primer cuartil.
 
 ```{r}
 rse_gene_SRP045638$assigned_gene_prop <- rse_gene_SRP045638$recount_qc.gene_fc_count_all.assigned / rse_gene_SRP045638$recount_qc.gene_fc_count_all.total
 summary(rse_gene_SRP045638$assigned_gene_prop)
 ```
 
+Observamos de que manera estan distribuidos los genes por medio de un plot
 
 ```{r}
 with(colData(rse_gene_SRP045638), plot(assigned_gene_prop, sra_attribute.RIN))
 ```
 
+Ahora visualizamos la distribucion de los valores
 
 ```{r}
 with(colData(rse_gene_SRP045638), tapply(assigned_gene_prop, prenatal, summary))
 ```
+
+mediante un histograma podemos observar la frecuencia con la que se repiten ciertos valores de expresión.
 
 ```{r}
 ## Guardemos nuestro objeto entero por si luego cambiamos de opinión
@@ -230,6 +250,8 @@ rse_gene_SRP045638_unfiltered <- rse_gene_SRP045638
 hist(rse_gene_SRP045638$assigned_gene_prop)
 ```
 
+
+
 ```{r}
 rse_gene_SRP045638 <- rse_gene_SRP045638[, rse_gene_SRP045638$assigned_gene_prop > 0.3]
 
@@ -237,17 +259,19 @@ rse_gene_SRP045638 <- rse_gene_SRP045638[, rse_gene_SRP045638$assigned_gene_prop
 ## muestras.
 ## Ojo: en un análisis real probablemente haríamos esto con los RPKMs o CPMs
 ## en vez de las cuentas.
-rowMeans(rowData(rse_gene_SRP045638))
+rowMeans(rse_gene_SRP045638)
 
 ```
 
-
+Observamos ahora los valores de expresión
 
 ```{r}
 rse_gene_SRP045638_unfiltered <- rse_gene_SRP045638
 gene_means <- rowMeans(assay(rse_gene_SRP045638, "counts"))
 summary(gene_means)
 ```
+
+
 
 ```{r}
 assay(rse_gene_SRP045638, "counts") <- compute_read_counts(rse_gene_SRP045638)
@@ -268,6 +292,7 @@ dge <- calcNormFactors(dge)
 library("ggplot2")
 ```
 
+Por medio de un boxplot podemos observar una diferencia en la expresión dependiendo del grupo
 
 ```{r}
 
@@ -277,6 +302,9 @@ ggplot(as.data.frame(colData(rse_gene_SRP045638)), aes(y = assigned_gene_prop, x
     ylab("Assigned Gene Prop") +
     xlab("Age Group")
 ```
+
+Observamos las categorias que quedaron en nuestro modelo
+
 ```{r}
 mod <- model.matrix(~ prenatal + sra_attribute.RIN + sra_attribute.sex + assigned_gene_prop,
     data = colData(rse_gene_SRP045638)
