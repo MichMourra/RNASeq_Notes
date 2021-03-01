@@ -1,6 +1,16 @@
 ---
-title: "Estadistica"
-output: html_document
+author: "Carlos Michel Mourra Díaz"
+date: "20/02/21"
+output: 
+  html_document:
+    df_print: paged
+    code_folding: show
+    self_contained: yes
+    theme: yeti
+    highlight: haddock
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
 ---
 
 Para explicar la relacion de variables con un resultado es necesario hacer una regresion lineal
@@ -46,7 +56,7 @@ mod <- model.matrix(~genotype + treatment, data = sampleData)
 mod
 ```
 
-Un ejemplo que nos ayudara a interpretar los coeficientes por medio de visualización
+Un ejemplo que nos ayudara a interpretar los coeficientes por medio de visualización, a si mismo podemos ver que campo se tomo como referencia para nuestro modelo.
 
 ```{r}
 vd <- ExploreModelMatrix::VisualizeDesign(
@@ -59,7 +69,7 @@ vd <- ExploreModelMatrix::VisualizeDesign(
 cowplot::plot_grid(plotlist = vd$plotlist)
 ```
 
-```{r}
+```{r,message=FALSE}
 library(ExploreModelMatrix)
 ```
 
@@ -141,7 +151,7 @@ cowplot::plot_grid(plotlist = vd$plotlist, ncol = 1)
 
 ```
 
-Para ver la matriz de manera interactiva con shiny
+Para ver la matriz de manera interactiva con shiny, de modo que si la puede cargar se sabe que es full rank, de lo contrario decimos que no lo es.
 
 ```{r, eval=FALSE}
 app <- ExploreModelMatrix(sampleData = sampleData,
@@ -149,17 +159,19 @@ app <- ExploreModelMatrix(sampleData = sampleData,
 if (interactive()) shiny::runApp(app)
 ```
 
-Ahora trabajaremos con los proyectos de recount3, seleccionando 1
+# Descarga de archivos recount3
 
-```{r}
+Ahora trabajaremos con los proyectos de recount3, de modo que descargamos los archivos de humanos
+
+```{r,message=FALSE}
 library("recount3")
 
 human_projects <- available_projects()
 ```
 
-Escogemos un proyecto en específico
+Escogemos un proyecto en específico y lo podemos utilizar como un objeto summarized.
 
-```{r}
+```{r, message=FALSE}
 rse_gene_SRP045638 <- create_rse(
     subset(
         human_projects,
@@ -168,26 +180,31 @@ rse_gene_SRP045638 <- create_rse(
 )
 ```
 
+Hacemos un cambio para que la cuenta se haga por muestras en lugar de por nucleotidos.
+
 ```{r}
 assay(rse_gene_SRP045638, "counts") <- compute_read_counts(rse_gene_SRP045638)
 ```
 
-
+Observamos si los campos son iguales, de lo contrario tendremos que modicarlos para que lo sean
 
 ```{r}
 rse_gene_SRP045638$sra.sample_attributes[1:3]
 ```
 
 
-```{r}
+```{r, message=FALSE}
 library("edgeR")
 ```
 
+Realizamos un cambio de los campos irregulares para que queden igual, de este modo sera posible extraer los atributos.
 
 ```{r}
 rse_gene_SRP045638$sra.sample_attributes <- gsub("dev_stage;;Fetal\\|", "", rse_gene_SRP045638$sra.sample_attributes)
 rse_gene_SRP045638$sra.sample_attributes[1:3]
 ```
+
+Extraemos la información de los atributos del estudio
 
 ```{r}
 rse_gene_SRP045638 <- expand_sra_attributes(rse_gene_SRP045638)
@@ -198,7 +215,7 @@ colData(rse_gene_SRP045638)[
 ]
 ```
 
-
+Debemos arreglar los atributos de tipo numerico y las de tipo factor ya que se hallan en caracter.
 
 ```{r}
 ## Pasar de character a nuemric o factor
@@ -214,7 +231,7 @@ summary(as.data.frame(colData(rse_gene_SRP045638)[
 ]))
 ```
 
-Identificamos cuantos post natales y prenatales hay
+Identificamos cuantos post natales y prenatales hay en el estudio.
 
 ```{r}
 rse_gene_SRP045638$prenatal <- factor(ifelse(rse_gene_SRP045638$sra_attribute.age < 0, "prenatal", "postnatal"))
@@ -228,13 +245,13 @@ rse_gene_SRP045638$assigned_gene_prop <- rse_gene_SRP045638$recount_qc.gene_fc_c
 summary(rse_gene_SRP045638$assigned_gene_prop)
 ```
 
-Observamos de que manera estan distribuidos los genes por medio de un plot
+Observamos de que manera estan distribuidos los genes por medio de un plot, de esta manera podremos observar como va a quedar el punto de corte.
 
 ```{r}
 with(colData(rse_gene_SRP045638), plot(assigned_gene_prop, sra_attribute.RIN))
 ```
 
-Ahora visualizamos la distribucion de los valores
+Ahora visualizamos la distribucion de los valores, de este modo podremos ayudar a establecer un punto de corte
 
 ```{r}
 with(colData(rse_gene_SRP045638), tapply(assigned_gene_prop, prenatal, summary))
@@ -250,7 +267,7 @@ rse_gene_SRP045638_unfiltered <- rse_gene_SRP045638
 hist(rse_gene_SRP045638$assigned_gene_prop)
 ```
 
-
+Ahora podremos ver como estan distribuidos los genes.
 
 ```{r}
 rse_gene_SRP045638 <- rse_gene_SRP045638[, rse_gene_SRP045638$assigned_gene_prop > 0.3]
@@ -263,7 +280,7 @@ rowMeans(rse_gene_SRP045638)
 
 ```
 
-Observamos ahora los valores de expresión
+Observamos ahora los valores de expresión, de modo que podemos encontrar la expresión de los genes de modo que podramos desechar los menos informativos.
 
 ```{r}
 rse_gene_SRP045638_unfiltered <- rse_gene_SRP045638
@@ -271,13 +288,13 @@ gene_means <- rowMeans(assay(rse_gene_SRP045638, "counts"))
 summary(gene_means)
 ```
 
-
+Evaluamos 
 
 ```{r}
 assay(rse_gene_SRP045638, "counts") <- compute_read_counts(rse_gene_SRP045638)
 ```
 
-
+Nos encargamos de evaluar nuestro modelo estadistico por medio de los datos del paper
 
 ```{r}
 dge <- DGEList(
@@ -292,7 +309,7 @@ dge <- calcNormFactors(dge)
 library("ggplot2")
 ```
 
-Por medio de un boxplot podemos observar una diferencia en la expresión dependiendo del grupo
+Por medio de un boxplot podemos observar una diferencia en la expresión dependiendo del grupo, en este caso natal y prenatal.
 
 ```{r}
 
@@ -303,7 +320,7 @@ ggplot(as.data.frame(colData(rse_gene_SRP045638)), aes(y = assigned_gene_prop, x
     xlab("Age Group")
 ```
 
-Observamos las categorias que quedaron en nuestro modelo
+Observamos las categorias que quedaron en nuestro modelo, en este caso podemos
 
 ```{r}
 mod <- model.matrix(~ prenatal + sra_attribute.RIN + sra_attribute.sex + assigned_gene_prop,
@@ -312,10 +329,14 @@ mod <- model.matrix(~ prenatal + sra_attribute.RIN + sra_attribute.sex + assigne
 colnames(mod)
 ```
 
+Observamos como cambia el valor de la desviación estandar respecto al valor log2 de los genes
+
 ```{r}
 library("limma")
 vGene <- voom(dge, mod, plot = TRUE)
 ```
+
+Realizamos una exploracion de los genes en nuestro modelo lineal
 
 ```{r}
 eb_results <- eBayes(lmFit(vGene))
@@ -333,24 +354,33 @@ dim(de_results)
 head(de_results)
 ```
 
+Medimos la cantidad de genes expresados diferencialmente en el estudio entre posnatales y prenatales.
+
 ```{r}
 ## Genes diferencialmente expresados entre pre y post natal con FDR < 5%
 table(de_results$adj.P.Val < 0.05)
 ```
 
+Visualizamos la dispersión de los genes diferencialmente expresados, negativo en posnatal y positivo en prenatal
 
 ```{r}
 ## Visualicemos los resultados estadísticos
 plotMA(eb_results, coef = 2)
 ```
 
+Por medio del volcano plot podremos ver la expresión diferencial de los genes 
+
 ```{r}
 volcanoplot(eb_results, coef = 2, highlight = 3, names = de_results$gene_name)
 ```
 
+Capturamos la información de 3 genes expresados diferencialmente
+
 ```{r}
 de_results[de_results$gene_name %in% c("ZSCAN2", "VASH2", "KIAA0922"), ]
 ```
+
+Hacemos un heatmap de acuerdo con las condiciones que se evaluaron en el estudio.
 
 ```{r}
 ## Extraer valores de los genes de interés
@@ -382,6 +412,7 @@ col.group <- df$AgeGroup
 levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
 ```
 
+Observamos si por medio de plotMDR podemos separa las muestras del estudio
 
 ```{r}
 col.group <- as.character(col.group)
@@ -395,6 +426,8 @@ plotMDS(vGene$E, labels = df$AgeGroup, col = col.group)
 col.sex <- df$Sex
 levels(col.sex) <- brewer.pal(nlevels(col.sex), "Dark2")
 ```
+
+Hacemos lo mismo pero ahora con genero
 
 ```{r}
 col.sex <- as.character(col.sex)
