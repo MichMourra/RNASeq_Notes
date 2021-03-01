@@ -8,6 +8,8 @@ autor: Carlos Michel Mourra Díaz
 
 ## Información
 
+El obsejto sumarized experiment es un objeto que posee que se divide en 3 apartados rowData, colData y assay. En los cuales habran diferentes campos que proporcionen la información acerca del estudio de RNA-Seq.
+
 ![BioconductorMethods](BioconductorMethods.png)
 En la parte de **metadata** puede ir lo que uno quiera, es equivalente a un espacio extra para guardar información adicional del experimento.
 
@@ -15,11 +17,14 @@ En la parte de **metadata** puede ir lo que uno quiera, es equivalente a un espa
 
 ## Ejemplo
 
-```{r}
+Cargamos la libreria para formar los objetos de summarized experiment
+
+```{r,message=FALSE}
 ## Lets build our first SummarizedExperiment object
 library("SummarizedExperiment")
 ```
 
+Generamos un ejemplo de las muestras en un estudio de RNA con lo cual podremos generar el objeto de summarized experiment.
 
 ```{r}
 
@@ -58,43 +63,49 @@ rse <- SummarizedExperiment(
 rse
 ```
 
-
-
+Observamos las dimensiones resultantes de nuestro objeto, por lo que podemos ver que posee 200 genes y 6 muestras distintas
 
 ```{r}
 ## Número de genes y muestras
 dim(rse)
 ```
 
+Vemos los genes que se encuentran en nuestro objeto.
+
 ```{r}
 ## IDs de nuestros genes y muestras
 dimnames(rse)
 ```
+
+Vemos los valores que poseen los ensayos en el analisis
 
 ```{r}
 ## Nombres de tablas de cuentas que tenemos (RPKM, CPM, counts, logcounts, etc)
 assayNames(rse)
 ```
 
-```{r}
-
-```
-
+Observamos la tabla con los valores de cada gen en cada muestra.
 
 ```{r}
 ## El inicio de nuestra tabla de cuentas
 head(assay(rse))
 ```
 
+Vemos los valores guardados en rowData por lo que podremos observar toda la información por default y la extra agregada.
+
 ```{r}
 ## Información de los genes en un objeto de Bioconductor
 rowRanges(rse)
 ```
 
+Accedemos a la información de rowData en donde podemos ver el campo extra en los renglones.
+
 ```{r}
 ## Tabla con información de los genes
 rowData(rse) # es idéntico a 'mcols(rowRanges(rse))'
 ```
+
+Vemos la información contenida en la sección de colData
 
 ```{r}
 ## Tabla con información de las muestras
@@ -102,6 +113,8 @@ colData(rse)
 ```
 
 ### Pregunta de Athena
+
+¿Como extraeriamos los cromosomas del objeto?
 
 ```{r}
 ## Ver los "unique" levels (cromosomas)
@@ -144,32 +157,43 @@ Sirve para la visualización de un objeto de summarized experiment
 library("iSEE")
 ```
 
-```{r}
+Por medio de iSEE podemos observar de manera interactiva toda la información del objeto.
+
+```{r, eval=FALSE}
+# Abrimos el objeto con iSEE
 iSEE::iSEE(rse)
 ```
 
 # SpatialLIBD
 
-Esto genera un objeto SingleCell experiment
+Esto genera un objeto SingleCell experiment, por lo que podemos observar la información con un objeto parecido al summarized experiment
 
 ## Ejemplo
 
-```{r}
+```{r, message=FALSE}
 ## Descarguemos unos datos de spatialLIBD
 sce_layer <- spatialLIBD::fetch_data("sce_layer")
 ```
+
+Observamos el resultado del objeto spatial, podemos ver qu de igual manera podemos observar los renglones y las columnas
 
 ```{r}
 sce_layer
 ```
 
-```{r}
+Este objeto tambien podemos visualizarlo con iSEE
+
+```{r,eval=FALSE}
 iSEE::iSEE(sce_layer)
 ```
+
+Si queremos acceder a la información de ciertos genes en especifico, colocamos los id como si fueran los indices.
 
 ```{r}
 sce_layer[c("ENSG00000168314", "ENSG00000183036", "ENSG00000197971"),]
 ```
+
+Ubicamos los nombres de nuestros genes en el objeto por medio del id
 
 ```{r}
 # Ubicamos los nombres de nuestros genes
@@ -177,23 +201,22 @@ print('COLDATA')
 head(rowRanges(sce_layer[c("ENSG00000168314", "ENSG00000183036", "ENSG00000197971"),])$gene_search)
 ```
 
+Conseguimos los nombres de los genes
+
 ```{r}
 # Ubicamos los nombres de nuestros genes
 print('COLDATA')
 head(rowRanges(sce_layer[c("ENSG00000168314", "ENSG00000183036", "ENSG00000197971"),])$gene_name)
 ```
 
-```{r}
+Abrimos la información unicamente con los 3 genes de interes
+
+```{r,eval=FALSE}
 # creamos el objeto que contenga los 3 genes
 sce_obj <- sce_layer[c("ENSG00000168314", "ENSG00000183036", "ENSG00000197971"),]
 iSEE::iSEE(sce_layer)
 ```
 
-
-
-
-
-
-
+Para consultar buenos paquetes de R
 
 https://www.shinyapps.io/
