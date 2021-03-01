@@ -1,7 +1,16 @@
 ---
-title: "BioC_RNAseq"
-output: html_document
-autor: Carlos Michel Mourra Díaz
+author: "Carlos Michel Mourra Díaz"
+date: "20/02/21"
+output: 
+  html_document:
+    df_print: paged
+    code_folding: show
+    self_contained: yes
+    theme: yeti
+    highlight: haddock
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
 ---
 
 # Summarized Experiment
@@ -152,7 +161,7 @@ Sirve para la visualización de un objeto de summarized experiment
 
 ## Ejemplo
 
-```{r}
+```{r,message=FALSE}
 ## Explora el objeto rse de forma interactiva
 library("iSEE")
 ```
