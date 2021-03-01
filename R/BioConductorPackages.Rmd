@@ -1,8 +1,16 @@
 ---
-title: "BioConductor Packages"
 author: "Carlos Michel Mourra Díaz"
-date: "23/02/21"
-output: output_format
+date: "18/02/21"
+output: 
+  html_document:
+    df_print: paged
+    code_folding: show
+    self_contained: yes
+    theme: yeti
+    highlight: haddock
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
 ---
 
 
